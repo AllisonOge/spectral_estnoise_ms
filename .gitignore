@@ -1,0 +1,9 @@
+# ignore some directories
+pdf/
+__pycache__/
+
+# ignore past code 
+min_stats_est.py 
+
+# ignore large files 
+sounds/well_known_person_you_admire.wav
