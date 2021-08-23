@@ -87,7 +87,8 @@ def smoothing_val(sig, samp_rate, spectrogram, tlength, time, domain=0, filename
         label_ax(ax3, x_axis[domain], 'smoothing fac')
 
         freq_ind = 2500*nfft*2//samp_rate
-        plt.title("Noise estimation at 25ms window time using a 50% overlap")
+        fig.suptitle(
+            "Noise estimation at 25ms window time using a 50% overlap")
         ax1.plot(
             ftime, 20*np.log(spectrogram[:, freq_ind]), label='periodogram')
         ax1.plot(
@@ -115,7 +116,7 @@ def smoothing_val(sig, samp_rate, spectrogram, tlength, time, domain=0, filename
     plt.show()
 
 
-def validation(spectrogram, true_noise, estimated_noise, stime, samp_rate, filename="validation"):
+def validation(spectrogram, true_noise, estimated_noise, stime, samp_rate, filename="est_validation"):
     """Validates the algorithm using the minimum squared error analysis to measure the accuracy of the estimation
     Produces two subplots of the noise estimate alongside the signal periodogram and the true noise versus the estimated noise"""
     # create grid for data presentation
@@ -129,10 +130,12 @@ def validation(spectrogram, true_noise, estimated_noise, stime, samp_rate, filen
     (niteration, nfft) = spectrogram.shape
     time = np.linspace(0, stime, niteration)
 
-    # FIXME compute mean squared error (MSE)
     # mse = mean of the variance of the the true and estimated noise data set
-    var = np.sum((true_noise - estimated_noise) ** 2,
+    var = np.sum((estimated_noise - true_noise) ** 2,
                  axis=1) / np.sum(true_noise, axis=1)
+    # normalize mse array
+    ref = var.copy()
+    var = (var - ref.min()) / (ref.max() - ref.min())
     mse = np.mean(var)
 
     estimated_noise = 10*np.log(estimated_noise)
@@ -140,9 +143,8 @@ def validation(spectrogram, true_noise, estimated_noise, stime, samp_rate, filen
     spectrogram = 20*np.log(spectrogram)
 
     freq_ind = 2500 * nfft * 2 // samp_rate
-    print('The estimated noise is ', estimated_noise[:, freq_ind])
-    plt.title(
-        'Objective measures of the estimated noise using MSE. The MSE calculated is {}'.format(mse))
+    fig.suptitle(
+        'Objective measures of the estimated noise using mean squared error (MSE). The MSE calculated is {}'.format(mse))
     ax1.plot(time, spectrogram[:, freq_ind], label='Periodogram')
     ax1.plot(time, estimated_noise[:, freq_ind], label='Estimated noise')
 
@@ -177,7 +179,7 @@ if __name__ == "__main__":
 
     # short-term fourier transform
     my_stft = ms_estnoise.stft()
-    spectrogram = my_stft.compute(b, samplerate, nfft, nfft/samplerate)
+    spectrogram = my_stft.compute(noisy_sig, samplerate, nfft, nfft/samplerate)
     true_noise = my_stft.compute(noise_sig, samplerate, nfft, nfft/samplerate)
 
     # noise estimation

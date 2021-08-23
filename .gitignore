@@ -7,3 +7,9 @@ min_stats_est.py
 
 # ignore large files 
 sounds/well_known_person_you_admire.wav
+
+# ignore debugging.py
+debugging.py
+
+# ignore vscode settings
+.vscode/

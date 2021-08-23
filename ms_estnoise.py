@@ -45,8 +45,8 @@ class stft:
 
 
 def gen_wgnoise(sig):
-    # snr of 5 dB
-    snr_lin = 10**(5/10)
+    # snr of 40 dB
+    snr_lin = 10**(40/10)
     sig_pow = sum([s**2 for s in sig])/len(sig)
     amp = np.sqrt(sig_pow/snr_lin)
     return stats.norm(0, amp)
@@ -114,10 +114,11 @@ class estnoisems:
                     bias_vec[k_mod]*B_corr
                 self.actmin_sub_vec[k_mod] = self.psd_vec[k_mod] * \
                     bias_sub_vec[k_mod]*B_corr
-            if self.subwc > 1 and self.subwc < _V:
+            if self.subwc > 0 and self.subwc < _V:
                 lmin_flag = np.logical_or(k_mod, lmin_flag)
                 P_min_u = min_complex(self.actmin_vec, P_min_u)
                 self.noise_est = P_min_u.copy()
+                self.subwc += 1
             else:
                 if self.subwc >= _V:
                     lmin_flag = np.logical_and(k_mod, lmin_flag)
@@ -134,15 +135,15 @@ class estnoisems:
                     else:
                         noise_slope_max = 10**(1.2/10)
                     lmin = np.logical_and(np.logical_and(np.logical_and(lmin_flag, np.logical_not(
-                        k_mod)), self.actmin_sub_vec < (noise_slope_max*P_min_u)), self.actmin_sub_vec > P_min_u)
+                        k_mod)), self.actmin_sub_vec < (noise_slope_max*P_min_u)), self.actmin_sub_vec < P_min_u)
                     if any(lmin):
                         P_min_u[lmin] = self.actmin_sub_vec[lmin]
                         # replace all previously stored actmin with actmin_sub
                         self.actbuff[:, lmin] = np.ones((_U, 1))*P_min_u[lmin]
                     lmin_flag[:] = 0
                     self.actmin_vec[:] = np.Inf
-                    self.subwc = 0
-                self.subwc = + 1
+                    self.actmin_sub_vec[:] = np.Inf
+                    self.subwc = 1
             x[n, :] = self.noise_est
         return x
 
