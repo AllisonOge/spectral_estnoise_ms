@@ -45,8 +45,8 @@ class stft:
 
 
 def gen_wgnoise(sig):
-    # snr of 40 dB
-    snr_lin = 10**(40/10)
+    # snr of 30 dB
+    snr_lin = 10**(30/10)
     sig_pow = sum([s**2 for s in sig])/len(sig)
     amp = np.sqrt(sig_pow/snr_lin)
     return stats.norm(0, amp)

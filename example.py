@@ -39,7 +39,7 @@ def label_ax(axes, xlabel, ylabel):
     axes.set_ylabel(ylabel, fontsize=fs)
 
 
-def visualize(sig, spectrogram, time_sig, time_freq, freq, filename="visualize"):
+def visualize(sig, spectrogram, stime, tlength, filename="visualize"):
     # create grid for data presentation
     fig = plt.figure(figsize=(16, 8))
     ax1 = plt.subplot2grid((4, 1), (0, 0), rowspan=2)
@@ -49,15 +49,19 @@ def visualize(sig, spectrogram, time_sig, time_freq, freq, filename="visualize")
     label_ax(ax1, 'time (s)', 'frequency (Hz)')
     label_ax(ax2, 'time (s)', 'Relative gain (dB)')
 
-    t_mesh, f_mesh = np.meshgrid(time_freq, freq)
+    (niteration, nfft) = spectrogram.shape
+    ftime = np.linspace(0, tlength, niteration)
+    freq = np.linspace(0, samplerate/2, nfft)
+    t_mesh, f_mesh = np.meshgrid(ftime, freq)
     spectrogram = 20*np.log(spectrogram/np.max(spectrogram))
+    spectrogram = spectrogram.transpose()
     norm = mpl.colors.Normalize(np.min(spectrogram), np.max(spectrogram) + 3)
 
     plot = ax1.pcolor(t_mesh, f_mesh, spectrogram, norm=norm, cmap=mpl.cm.jet)
 
     ax1.axis('tight')
 
-    ax2.plot(time_sig, sig)
+    ax2.plot(stime, sig)
 
     cb = fig.colorbar(plot, ax=ax1)
     cb.set_label('Relative Gain', fontsize=14)
@@ -187,9 +191,9 @@ if __name__ == "__main__":
 
     # visualize spectrogram
     time_sig = np.linspace(0., length, data.shape[0])
-    # visualize(b, target_data, time_sig, time_freq, freq, 'periodogram')
+    # visualize(noisy_sig, spectrogram, time_sig, length, 'noisy_periodogram')
 
     # Validate algorithm
-    # smoothing_val(noisy_sig, samplerate, spectrogram, length,
-    #               time_sig)
-    validation(spectrogram, true_noise, result[1], length, samplerate)
+    smoothing_val(noisy_sig, samplerate, spectrogram, length,
+                  time_sig)
+    # validation(spectrogram, true_noise, result[1], length, samplerate)
