@@ -13,6 +13,7 @@ from scipy.signal.spectral import spectrogram, stft
 # from current directory
 import ms_estnoise
 import ms_estnoise2
+from comparison.othermethods import *
 from estnoise_ms import *
 
 
@@ -207,6 +208,42 @@ def est_validation(spectrogram, true_noise, estimated_noise, tlength, samp_rate,
     plt.show()
 
 
+def compare_methods(spectrogram, samp_rate, tlength):
+    """compare the results of three methods that estimate noise"""
+    info = dict({
+        "nchan": 3,
+        "chan_bw": samp_rate/3,
+        "fchan": 2,
+        "samp_rate": samp_rate})
+
+    (niteration, nfft) = spectrogram.shape
+    estimator = ms_estnoise2.estnoisems(nfft, niteration)
+    noise_est1 = estimator.compute(spectrogram)
+    noise_est2 = estnoisefc(spectrogram, info)
+    noise_est3 = estnoise80(spectrogram)
+
+    freq = np.linspace(0, samp_rate/2, nfft)
+    time_ind = int(9 * niteration // tlength)
+
+    fig = plt.figure(figsize=(16, 9))
+    ax = plt.subplot2grid((1, 1), (0, 0))
+    fig.suptitle("Comparison of noise estimation methods")
+    label_ax(ax, 'frequency (Hz)', 'Magnitude')
+    ax.plot(freq, 20*np.log10(spectrogram[time_ind, :]), label="noisy signal")
+    ax.plot(
+        freq, 10*np.log10(noise_est1[time_ind, :]), label="proposed method")
+    ax.plot(
+        freq, 10*np.log10(noise_est2[time_ind, :]), label="free channel method")
+    ax.plot(freq, 10*np.log10(noise_est3[time_ind, :]), label="80% method")
+    ax.legend()
+
+    plt.tight_layout()
+    print("Saving figure!")
+    plt.savefig('compare_methods' + ".png")
+
+    plt.show()
+
+
 if __name__ == "__main__":
     data_dir = pjoin('sounds')
     wav_fname = pjoin(data_dir, 'test_sound.wav')
@@ -228,18 +265,21 @@ if __name__ == "__main__":
     spectrogram = my_stft.compute(noisy_sig, samplerate, nfft, nfft/samplerate)
     true_noise = my_stft.compute(noise_sig, samplerate, nfft, nfft/samplerate)
 
-    # noise estimation with Martin's algorithm
-    result = noise_estimation(spectrogram)
-    # nuanced version with concentration on frequency and time domains
-    result = noise_estimation2(spectrogram)
+    # # noise estimation with Martin's algorithm
+    # result = noise_estimation(spectrogram)
+    # # nuanced version with concentration on frequency and time domains
+    # result = noise_estimation2(spectrogram)
 
-    # visualize spectrogram
-    time_sig = np.linspace(0., length, data.shape[0])
-    # visualize(noisy_sig, spectrogram, time_sig, length, 'noisy_periodogram')
+    # # visualize spectrogram
+    # time_sig = np.linspace(0., length, data.shape[0])
+    # # visualize(noisy_sig, spectrogram, time_sig, length, 'noisy_periodogram')
 
-    # Validate algorithm
-    # to validate ensure the right domain value is used, 0 - time and 1 - frequency
-    smoothing_val(noisy_sig, samplerate, spectrogram, length,
-                  time_sig, domain=1)
-    # est_validation(spectrogram, true_noise,
-    #                result[1], length, samplerate, domain=1)
+    # # Validate algorithm
+    # # to validate ensure the right domain value is used, 0 - time and 1 - frequency
+    # smoothing_val(noisy_sig, samplerate, spectrogram, length,
+    #               time_sig, domain=1)
+    # # est_validation(spectrogram, true_noise,
+    # #                result[1], length, samplerate, domain=1)
+
+    ###################comparison of methods#######################
+    compare_methods(spectrogram, samplerate, length)
