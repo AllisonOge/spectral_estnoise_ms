@@ -64,16 +64,17 @@ class estnoisems:
         self.actbuff = np.ones((_U, nfft))*np.inf
         self.subwc = _V
 
-    def compute(self, Y_vec, niteration):
+    def compute(self, Y_vec):
         """Estimation of the noise based on minimum statistics"""
+        (niteration, nfft) = Y_vec.shape
         self.psd_vec = Y_vec[0, :]**2
         self.noise_est = self.psd_vec
         alpha_corr = 1
         fmoment = self.psd_vec
         smoment = self.psd_vec**2
-        lmin_flag = np.zeros(len(self.psd_vec))
+        lmin_flag = np.zeros(nfft)
         ibuf = 0
-        x = np.zeros((niteration, len(self.psd_vec)))
+        x = np.zeros((niteration, nfft))
         for n in range(niteration):
             Y_vec_n = Y_vec[n, :]  # consider only a frame
             # compute tilda  correction factor
