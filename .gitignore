@@ -7,6 +7,7 @@ min_stats_est.py
 
 # ignore large files 
 sounds/well_known_person_you_admire.wav
+rf_dataset/test_data_raw_csv.csv
 
 # ignore debugging.py
 debugging.py

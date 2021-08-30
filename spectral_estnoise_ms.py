@@ -1,3 +1,4 @@
+import csv
 import sys
 from os.path import dirname
 from os.path import join as pjoin
@@ -8,7 +9,7 @@ import scipy.io
 from matplotlib import pyplot as plt
 from scipy import fftpack, signal, stats
 from scipy.io import wavfile
-from scipy.signal.spectral import spectrogram, stft
+from scipy.signal.spectral import spectrogram
 
 # from current directory
 import ms_estnoise
@@ -49,7 +50,7 @@ def label_ax(axes, xlabel, ylabel):
     axes.set_ylabel(ylabel, fontsize=fs)
 
 
-def visualize(sig, spectrogram, stime, tlength, filename="visualize"):
+def visualize(sig, spectrogram, samp_rate, stime, tlength, filename="visualize"):
     # create grid for data presentation
     fig = plt.figure(figsize=(16, 8))
     ax1 = plt.subplot2grid((4, 1), (0, 0), rowspan=2)
@@ -61,7 +62,7 @@ def visualize(sig, spectrogram, stime, tlength, filename="visualize"):
 
     (niteration, nfft) = spectrogram.shape
     ftime = np.linspace(0, tlength, niteration)
-    freq = np.linspace(0, samplerate/2, nfft)
+    freq = np.linspace(0, samp_rate/2, nfft)
     t_mesh, f_mesh = np.meshgrid(ftime, freq)
     spectrogram = 20*np.log(spectrogram/np.max(spectrogram))
     spectrogram = spectrogram.transpose()
@@ -150,7 +151,7 @@ def est_validation(spectrogram, true_noise, estimated_noise, tlength, samp_rate,
 
     (niteration, nfft) = spectrogram.shape
     time = np.linspace(0, tlength, niteration)
-    freq = np.linspace(0, samplerate/2, nfft)
+    freq = np.linspace(0, samp_rate/2, nfft)
 
     # mse = mean of the variance of the the true and estimated noise data set
     var = np.sum((estimated_noise - true_noise) ** 2,
@@ -245,25 +246,25 @@ def compare_methods(spectrogram, samp_rate, tlength):
 
 
 if __name__ == "__main__":
-    data_dir = pjoin('sounds')
-    wav_fname = pjoin(data_dir, 'test_sound.wav')
-    nfft = 512
-    samplerate, data = wavfile.read(wav_fname)
-    length = data.shape[0] / samplerate
-    print(f"seconds of signal = {length}s")
-    a = data.T[0]
-    # this is 8-bit track, b is now normalized on [-1,1)
-    b = [(ele/2**8.)*2-1 for ele in a]
+    # data_dir = pjoin('sounds')
+    # wav_fname = pjoin(data_dir, 'test_sound.wav')
+    # nfft = 512
+    # samplerate, data = wavfile.read(wav_fname)
+    # length = data.shape[0] / samplerate
+    # print(f"seconds of signal = {length}s")
+    # a = data.T[0]
+    # # this is 8-bit track, b is now normalized on [-1,1]
+    # b = [(ele/2**8.)*2-1 for ele in a]
 
-    # add noise
-    wgnoise = ms_estnoise.gen_wgnoise(b)
-    noise_sig = wgnoise.rvs(data.shape[0])
-    noisy_sig = b + noise_sig
+    # # add noise
+    # wgnoise = ms_estnoise.gen_wgnoise(b)
+    # noise_sig = wgnoise.rvs(data.shape[0])
+    # noisy_sig = b + noise_sig
 
-    # short-term fourier transform
-    my_stft = ms_estnoise.stft()
-    spectrogram = my_stft.compute(noisy_sig, samplerate, nfft, nfft/samplerate)
-    true_noise = my_stft.compute(noise_sig, samplerate, nfft, nfft/samplerate)
+    # # short-term fourier transform
+    # my_stft = ms_estnoise.stft()
+    # spectrogram = my_stft.compute(noisy_sig, samplerate, nfft, nfft/samplerate)
+    # true_noise = my_stft.compute(noise_sig, samplerate, nfft, nfft/samplerate)
 
     # # noise estimation with Martin's algorithm
     # result = noise_estimation(spectrogram)
@@ -272,7 +273,7 @@ if __name__ == "__main__":
 
     # # visualize spectrogram
     # time_sig = np.linspace(0., length, data.shape[0])
-    # # visualize(noisy_sig, spectrogram, time_sig, length, 'noisy_periodogram')
+    # # visualize(noisy_sig, spectrogram, samplerate, time_sig, length, 'noisy_periodogram')
 
     # # Validate algorithm
     # # to validate ensure the right domain value is used, 0 - time and 1 - frequency
@@ -282,4 +283,18 @@ if __name__ == "__main__":
     # #                result[1], length, samplerate, domain=1)
 
     ###################comparison of methods#######################
-    compare_methods(spectrogram, samplerate, length)
+    # compare_methods(spectrogram, samplerate, length)
+
+    # test methods with RF signals
+    with open('rf_dataset/test_data_raw_csv.csv') as csv_file:
+        csv_reader = csv.reader(csv_file)
+
+        data = []
+        for row in csv_reader:
+            if csv_reader.line_num == 1:
+                header = row
+                frequency = np.array([float(f) for f in header[1:]])
+                # nfft = len(frequency)
+            else:
+                data.append(row[1:])
+        print(np.asarray(data), np.asarray(data).shape)
