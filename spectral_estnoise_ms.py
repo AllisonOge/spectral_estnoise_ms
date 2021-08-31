@@ -250,6 +250,46 @@ def compare_methods(spectrogram, samp_rate, tlength, freq):
 
     plt.show()
 
+def compare_methods2(spectrogram, samp_rate, tlength, freq):
+    """compare the results of three methods that estimate noise"""
+    # info = dict({
+    #     "nchan": 3,
+    #     "chan_bw": samp_rate/3,
+    #     "fchan": 2,
+    #     "samp_rate": samp_rate})
+
+    info = dict({
+        "nchan": 6,
+        "chan_bw": samp_rate / 6,
+        "fchan": 4,
+        "samp_rate": samp_rate})
+
+    (niteration, nfft) = spectrogram.shape
+    estimator = ms_estnoise2.estnoisems(nfft, niteration)
+    noise_est1 = estimator.compute(spectrogram)
+    # noise_est2 = estnoisefc(spectrogram, info)
+    noise_est3 = estnoise80(spectrogram)
+
+    # freq = np.linspace(0, samp_rate/2, nfft)
+    time_ind = int(9 * niteration // tlength)
+
+    fig = plt.figure(figsize=(16, 9))
+    ax = plt.subplot2grid((1, 1), (0, 0))
+    fig.suptitle("Comparison of noise estimation methods")
+    label_ax(ax, 'frequency (Hz)', 'Magnitude')
+    ax.plot(freq, 20*np.log10(spectrogram[time_ind, :]), label="noisy signal")
+    ax.plot(
+        freq, 10*np.log10(noise_est1[time_ind, :]), label="proposed method")
+    # ax.plot(
+    #     freq, 10*np.log10(noise_est2[time_ind, :]), label="free channel method")
+    ax.plot(freq, 10*np.log10(noise_est3[time_ind, :]), label="80% method")
+    ax.legend()
+
+    plt.tight_layout()
+    print("Saving figure!")
+    plt.savefig('compare_methods2' + ".png")
+
+    plt.show()
 
 if __name__ == "__main__":
     # data_dir = pjoin('sounds')
@@ -292,7 +332,8 @@ if __name__ == "__main__":
     # compare_methods(spectrogram, samplerate, length)
 
     # test methods with RF signals
-    with open('rf_dataset/test_data_raw_csv.csv') as csv_file:
+    # with open('rf_dataset/test_data_raw_csv.csv') as csv_file:
+    with open('rf_dataset/test_data_raw_csv2.csv') as csv_file:
         csv_reader = csv.reader(csv_file)
 
         data = []
@@ -307,4 +348,5 @@ if __name__ == "__main__":
     # prerequisite parameters
     samp_rate = 6e6
     # FIXME mathematically determine the time of the signal (number of samples / sample rate)
-    compare_methods(spectrogram, samp_rate, 13.0, frequency)
+    # compare_methods(spectrogram, samp_rate, 13.0, frequency)
+    compare_methods2(spectrogram, samp_rate, 13.0, frequency)
