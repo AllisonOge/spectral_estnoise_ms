@@ -36,10 +36,12 @@ Figure 9
 The results presented have shown the successful implementation of the noise estimation algorithm that uses minimum statistics and the improved noise estimation from the proposed method since the MSE is reduced from 0.4207 to 0.2203 which is approximately 50 percent. Also, the proposed noise estimation method closely correlates with the estimation using the 80 percent method however, it shows dynamism in time and frequency. Particularly in spectrum occupancy measurement that spans a large bandwidth the noise level shows appreciable changes with frequency, thus a noise estimation that tracks both changes in time and frequency has better accuracy with changing threshold values. 
 
 ## Bug fixes
-The proposed changes addressed the computation of the smoothed PSD and the unbiased noise estimate. To tighten the estimation of the unbiased noise in the frequency domain, the smoothed PSD should not only smoothen the time domain but also the frequency domain. Hence, the equation below which smoothens the PSD of the noisy speech signal along the time domain (the time index n) was changed to smoothen in both the time and frequency domain. 
+The proposed changes addressed the computation of the smoothed PSD and the unbiased noise estimate. To tighten the estimation of the unbiased noise in the frequency domain, the smoothed PSD should not only smoothen the time domain but also the frequency domain. Hence, the equation below which smoothens the PSD of the noisy speech signal along the time domain (the time index n) was changed to smoothen in both the time and frequency domain.
+
 $$
 P(n,k) = \alpha(n,k)P(n,k)+(1-\alpha(n,k)) |Y(n,k)|^2
 $$
+
 Prior to the changes, the equation computes the newest time vector of the smoothed PSD using the previous time vectors – smoothed PSD and the smoothing factor – this means it is recursive in time. To ensure the recursion is in both time and frequency, we made the recursion sweep through the previous time vector from each frequency component to the next while smoothing each PSD sample. Also, to acknowledge the unbiased noise estimate in the frequency domain, the same steps taken in noise estimation in the time domain were repeated in the frequency domain. However, the use of sub-window in the algorithm was not needed as the frequency index is usually a small value dependent on the user’s preference when analysing signals. Therefore, the length of the window used during the program would be used to track the minimum of the frequency samples. The pseudo code that shows the minimum statistics tracking in the frequency domain is given in Algorithm 1.
 
 Algorithm 1
