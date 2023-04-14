@@ -64,3 +64,6 @@ As seen, the estimation deviates from the noise level and tracks the signal towa
 |`ms_estnoise.py`|Martin's algorithm implementation|
 |`ms_estnoise2.py`| Proposed algorithm|
 |`spectral_estnoise_ms.py`|Main file for development and testing|
+
+## Publication
+[Spectral Noise Estimation: A Python 3 Implementation of the Minimum Statistics Estimation](https://doi.org/10.36263/nijest.2022.01.0300)
